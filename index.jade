@@ -1,31 +1,59 @@
 doctype 5
 html(lang="en")
   head
+    title= title
+
     link(href="//api.tiles.mapbox.com/mapbox.js/v1.3.1/mapbox.css" rel="stylesheet")
-    link(href="/mapbox.js/assets/leaflet.draw.css")
+    link(href="/stylesheets/leaflet.draw.css" rel="stylesheet")
+    link(href="/stylesheets/index.css" rel="stylesheet")
 
     script(src="//api.tiles.mapbox.com/mapbox.js/v1.3.1/mapbox.js")
     script(src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js")
-    script(src="/mapbox.js/assets/leaflet.draw.js")
+    script(src="/socket.io/socket.io.js")
+    script(src="/javascripts/leaflet.draw.js")
+    script(src="/javascripts/underscore.js")
 
     :coffeescript
       $ ->
         map = L.mapbox.map("map", "willrax.map-vaendp9j").setView([-33.914, 151.2328], 13)
-        featureGroup = L.featureGroup().addTo(map);
+        featureGroup = L.featureGroup().addTo(map)
+        drawControl = new L.Control.Draw({
+          edit: {
+            featureGroup: featureGroup
+          }
+        }).addTo(map)
 
-    style
-      body{
-        margin: 0;
-        padding: 0;
-      }
-      #map{
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 100%;
-      }
+        $.ajax "/features",
+          type: "get"
+          success: (features) =>
+            existingFeatures = _(features).map (feature) ->
+              {
+                type: "Feature"
+                geometry:
+                  type: feature.type
+                  coordinates: feature.coordinates
+                properties: {}
+              }
 
-    title Map
+            markerLayer = L.mapbox.markerLayer().addTo(map)
+            markerLayer.setGeoJSON(
+              type: "FeatureCollection"
+              features:
+                existingFeatures
+            )
+
+        socket = io.connect("http://localhost")
+        socket.on "newFeature", (data) ->
+          markerLayer = L.mapbox.markerLayer().addTo(map)
+          markerLayer.setGeoJSON(
+            type: "Feature"
+            geometry:
+              data
+          )
+
+        map.on "draw:created", (e) ->
+          socket.emit("shapeAdded", e.layer.toGeoJSON().geometry)
+          featureGroup.addLayer(e.layer)
 
   body
     #map

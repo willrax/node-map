@@ -4,6 +4,10 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
+    "coffee-script": "*",
     "express": "~3.x",
+    "mongoose": "*",
+    "socket.io": "*",
+    "underscore": "*"
   }
 }
