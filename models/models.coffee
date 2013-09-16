@@ -9,8 +9,8 @@ featureSchema = new Schema(
   coordinates: []
   radius: Number
 )
-mongo_url = process.env.MONGOHQ_URL
-mongoose.connect("#{mongo_url}")
+
+mongoose.connect("#{db.mongo_url}")
 mongoose.connection.on "error", () ->
   console.error('connection error', arguments)
 
