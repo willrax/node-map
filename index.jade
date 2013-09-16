@@ -35,21 +35,21 @@ html(lang="en")
                 properties: {}
               }
 
-            markerLayer = L.mapbox.markerLayer().addTo(map)
-            markerLayer.setGeoJSON(
+            L.mapbox.markerLayer(
               type: "FeatureCollection"
               features:
                 existingFeatures
-            )
+            ).addTo(map)
 
         socket = io.connect("http://localhost")
         socket.on "newFeature", (data) ->
-          markerLayer = L.mapbox.markerLayer().addTo(map)
-          markerLayer.setGeoJSON(
+          L.mapbox.markerLayer(
             type: "Feature"
             geometry:
               data
-          )
+            properties:
+              title: ""
+          ).addTo(map)
 
         map.on "draw:created", (e) ->
           socket.emit("shapeAdded", e.layer.toGeoJSON().geometry)
